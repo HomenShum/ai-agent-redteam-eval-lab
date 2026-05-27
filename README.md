@@ -1,34 +1,41 @@
-# AI Agent Red-Team Eval Lab
+# Build Your Own Agent Red-Team Evaluator
 
-A public, sanitized practice repo for AI agent red-team evaluation design.
+A CodeCrafters-style, public-safe challenge track for building an AI agent red-team evaluation harness from scratch.
 
-It demonstrates the end-to-end loop:
-
-```text
-Risk taxonomy
-  -> Attack taxonomy
-  -> Attack transform
-  -> Agent under test
-  -> Judge
-  -> Finding
-  -> Eval report
-  -> Manual review / remediation
-```
-
-This repo is intentionally safe to make public. It contains no private recruiter messages, calendar links, resumes, email bodies, API keys, or personal interview artifacts.
-
-## Why This Exists
-
-In real AI evaluation work, a recruiter or evaluator may ask you to extend a basic red-team environment. The important move is not memorizing every risk category. The important move is showing that you can design a repeatable testing loop.
-
-The core idea:
+You will build a small evaluator that can model risks, apply attacks, run an agent under test, judge the response, generate findings, and escalate ambiguous cases to manual review.
 
 ```text
-Risk = what failure mode do we care about?
-Attack = how do we try to trigger that failure mode?
-Judge = how do we decide whether the agent failed?
-Manual eval = how do humans review ambiguous or high-impact findings?
+Risk + Attack + Prompt
+        |
+        v
+Attack Transform
+        |
+        v
+Agent Under Test
+        |
+        v
+Judge
+        |
+        v
+Finding + Eval Report
 ```
+
+This repo is sanitized for public sharing. It contains no private recruiter messages, calendar links, resumes, email bodies, API keys, or private interview artifacts.
+
+## The Challenge
+
+Build your own AI agent red-team harness in stages:
+
+| Stage | You Build | Why It Matters |
+|---|---|---|
+| 1 | `Risk`, `Attack`, `TestCase`, `Finding` | Turns messy safety concerns into typed eval objects |
+| 2 | Attack transforms | Separates attack technique from the risk being tested |
+| 3 | Red-team runner | Creates the execution lifecycle |
+| 4 | Deterministic judges | Handles cheap, stable checks like leakage and forbidden actions |
+| 5 | Manual eval queue | Captures cases humans should review |
+| 6 | LLM-as-judge adapter | Handles semantic judgment where regex is too brittle |
+| 7 | SDK adapters | Shows how OpenAI, Claude, and pi-ai style routers fit in |
+| 8 | Report + remediation loop | Produces evidence-backed outputs a team can act on |
 
 ## Quickstart
 
@@ -40,63 +47,73 @@ python -m venv .venv
 pip install -e .[dev]
 python -m pytest -q
 python -m redteam_eval_lab.cli --judge deterministic
+python -m redteam_eval_lab.cli --judge manual
 ```
 
-Expected: tests pass, then the CLI prints a JSON report with intentionally failing toy-agent findings.
+The tests should pass. The CLI intentionally reports failures because the toy agent is vulnerable.
 
-## Architecture
+## Start Here
+
+If you want the CodeCrafters-style path, read the stages in order:
+
+1. [Stage 1 - Define the eval schema](stage_descriptions/01-define-eval-schema.md)
+2. [Stage 2 - Add attack transforms](stage_descriptions/02-add-attack-transforms.md)
+3. [Stage 3 - Build the runner](stage_descriptions/03-build-runner.md)
+4. [Stage 4 - Add deterministic judges](stage_descriptions/04-add-deterministic-judges.md)
+5. [Stage 5 - Add manual eval](stage_descriptions/05-add-manual-eval.md)
+6. [Stage 6 - Add LLM-as-judge](stage_descriptions/06-add-llm-judge.md)
+7. [Stage 7 - Add SDK adapters](stage_descriptions/07-add-sdk-adapters.md)
+8. [Stage 8 - Ship reports and remediation](stage_descriptions/08-ship-reports.md)
+
+Use the starter kit:
+
+- [Python starter](challenge/starter/python/redteam_lab.py)
+- [Starter tests](challenge/starter/python/tests/)
+- [Reference implementation](src/redteam_eval_lab/)
+
+## Reference Implementation
+
+The working implementation lives in [src/redteam_eval_lab](src/redteam_eval_lab).
+
+Important files:
+
+- [schemas.py](src/redteam_eval_lab/schemas.py) - risk, attack, testcase, finding, report
+- [attacks.py](src/redteam_eval_lab/attacks.py) - prompt injection, base64, JSON injection, hidden markdown
+- [agents.py](src/redteam_eval_lab/agents.py) - intentionally vulnerable toy agent
+- [judges.py](src/redteam_eval_lab/judges.py) - deterministic, manual, OpenAI, Anthropic judges
+- [runner.py](src/redteam_eval_lab/runner.py) - orchestration loop
+- [suites.py](src/redteam_eval_lab/suites.py) - sample risk/attack test cases
+
+## Judge Design
+
+Production systems rarely use just one judge:
 
 ```text
-┌────────────────────────────┐
-│ Risk(l1, l2, l3)           │
-│ e.g. Privacy / PII leakage │
-└──────────────┬─────────────┘
-               │ paired with
-┌──────────────▼─────────────┐
-│ Attack(l1, l2, l3)         │
-│ e.g. JSON injection        │
-└──────────────┬─────────────┘
-               │ transforms prompt
-┌──────────────▼─────────────┐
-│ AgentUnderTest.respond()   │
-└──────────────┬─────────────┘
-               │ produces response
-┌──────────────▼─────────────┐
-│ Judge.evaluate()           │
-│ deterministic / LLM/manual │
-└──────────────┬─────────────┘
-               │ creates
-┌──────────────▼─────────────┐
-│ Finding                    │
-│ severity, evidence, fix    │
-└──────────────┬─────────────┘
-               │ aggregates into
-┌──────────────▼─────────────┐
-│ EvalReport                 │
-└────────────────────────────┘
+Deterministic checks
+  -> schema validation
+  -> LLM judge
+  -> second judge for disputed cases
+  -> manual review
+  -> remediation tracking
 ```
 
-## Judge Types
-
-| Judge | Purpose | Pros | Cons |
+| Judge | Use For | Strength | Weakness |
 |---|---|---|---|
-| Deterministic judge | Exact checks, regex, schema, forbidden terms | Fast, cheap, stable | Misses nuance |
-| LLM judge | Semantic grading, policy reasoning, quality scoring | Handles nuance | Non-deterministic, costs money |
-| Manual judge | Human review of ambiguous/high-risk cases | Best for calibration | Slow, expensive |
-| Hybrid judge | Deterministic first, LLM second, manual escalation | Production-realistic | More moving parts |
-
-Production systems usually do **not** pick only one. They layer them.
+| Deterministic | Terms, schemas, tool-call permissions | Fast and stable | Misses nuance |
+| LLM judge | Hallucination, grounding, policy adherence | Handles semantics | Costs money and can drift |
+| Manual eval | Ambiguous or high-stakes findings | Best calibration source | Slow |
+| Hybrid | Real production loops | Balanced | More system complexity |
 
 ## SDK Adapter Examples
 
-This repo includes docs and adapter patterns for:
+The repo includes optional patterns for:
 
 - OpenAI Agents SDK / OpenAI API
 - Claude Agent SDK / Anthropic API
-- pi-ai routing
+- pi-ai style model routing
 - manual eval queues
 
-The default tests do not require any SDK or key.
+The default test suite does not need API keys.
 
 See:
 
@@ -107,5 +124,9 @@ See:
 
 ## Interview Soundbite
 
-> I would start with deterministic checks for cheap, stable failures, then use LLM-as-judge for semantic cases like hallucination, policy adherence, grounding, and tone. For ambiguous or high-impact findings, I would route to manual review. The key is that all judges return the same structured `Finding`, so the rest of the eval pipeline stays stable.
+> I would start with deterministic checks for cheap, stable failures, then use LLM-as-judge for semantic cases like hallucination, policy adherence, grounding, and tone. For ambiguous or high-impact findings, I would route to manual review. The key is that all judges return the same structured Finding, so the rest of the eval pipeline stays stable.
+
+## Public-Safety Boundary
+
+This repo teaches the evaluation architecture without publishing private context. Keep real resumes, emails, interview prompts, meeting links, and private API keys out of the repo.
 

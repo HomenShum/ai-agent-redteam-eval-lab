@@ -1,0 +1,40 @@
+name: build-your-own-agent-redteam-evaluator
+title: Build Your Own Agent Red-Team Evaluator
+description: A public-safe, CodeCrafters-style challenge track for building a risk/attack eval harness with deterministic, LLM, and manual judges.
+language: python
+visibility: public
+repository: https://github.com/HomenShum/ai-agent-redteam-eval-lab
+stages:
+  - slug: define-eval-schema
+    title: Define the eval schema
+    description: Implement Risk, Attack, TestCase, Finding, and EvalReport.
+    path: stage_descriptions/01-define-eval-schema.md
+  - slug: add-attack-transforms
+    title: Add attack transforms
+    description: Implement prompt injection, base64, JSON injection, and hidden markdown attacks.
+    path: stage_descriptions/02-add-attack-transforms.md
+  - slug: build-runner
+    title: Build the runner
+    description: Apply an attack, call the agent, judge the response, and collect findings.
+    path: stage_descriptions/03-build-runner.md
+  - slug: deterministic-judges
+    title: Add deterministic judges
+    description: Add stable checks for hallucination, prompt leakage, PII leakage, and unauthorized action.
+    path: stage_descriptions/04-add-deterministic-judges.md
+  - slug: manual-eval
+    title: Add manual eval
+    description: Queue ambiguous and high-impact cases for human review.
+    path: stage_descriptions/05-add-manual-eval.md
+  - slug: llm-judge
+    title: Add LLM-as-judge
+    description: Add a semantic judge that returns the same Finding shape.
+    path: stage_descriptions/06-add-llm-judge.md
+  - slug: sdk-adapters
+    title: Add SDK adapters
+    description: Sketch OpenAI Agents, Claude Agent SDK, and pi-ai routing integrations.
+    path: stage_descriptions/07-add-sdk-adapters.md
+  - slug: reports
+    title: Ship reports and remediation
+    description: Export structured evidence, severity, and remediation reports.
+    path: stage_descriptions/08-ship-reports.md
+
