@@ -22,6 +22,10 @@ The runner should:
 6. Return EvalReport.
 ```
 
+`AgentUnderTest` is a protocol/interface, not the concrete agent. `ToyAgent`
+and `EchoAgent` are concrete examples. In production, this could be a wrapper
+around a model SDK, local service, or deployed agent endpoint.
+
 ## Pass When
 
 - One input test case creates one finding.
@@ -31,4 +35,3 @@ The runner should:
 ## Interview Line
 
 > I would keep the runner boring. The runner should orchestrate; the attacks and judges should carry the domain behavior.
-

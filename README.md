@@ -94,6 +94,10 @@ Important files:
 - [runner.py](src/redteam_eval_lab/runner.py) - orchestration loop
 - [suites.py](src/redteam_eval_lab/suites.py) - sample risk/attack test cases
 
+`AgentUnderTest` is a protocol/interface, so its `respond()` method is only a
+contract. Concrete implementations include `ToyAgent` and `EchoAgent`; real
+apps would provide an adapter around an SDK, local service, or deployed agent.
+
 ## Judge Design
 
 Production systems rarely use just one judge:

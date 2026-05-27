@@ -1,6 +1,7 @@
 from redteam_lab import (
     Attack,
     DeterministicJudge,
+    EchoAgent,
     RedTeamRunner,
     Risk,
     Severity,
@@ -14,6 +15,10 @@ def test_runner_returns_one_finding_per_case():
     report = RedTeamRunner(ToyAgent(), DeterministicJudge()).run(sample_suite())
     assert report.total == len(sample_suite())
     assert len(report.findings) == len(sample_suite())
+
+
+def test_echo_agent_proves_agent_under_test_contract():
+    assert EchoAgent().respond("hello") == "Echo: hello"
 
 
 def test_apply_attack_uses_attack_l3_key():
@@ -44,4 +49,3 @@ def test_unknown_attack_falls_back_to_original_prompt():
 def test_runner_calls_judge():
     report = RedTeamRunner(ToyAgent(), DeterministicJudge()).run(sample_suite())
     assert any(finding.severity == Severity.HIGH for finding in report.findings)
-

@@ -102,8 +102,21 @@ class EvalReport:
 
 
 class AgentUnderTest(Protocol):
+    """Stage 3 interface contract.
+
+    This is not the agent implementation. It says: any concrete class with a
+    respond(prompt) method can be evaluated by RedTeamRunner.
+    """
+
     def respond(self, prompt: str) -> str:
-        ...
+        raise NotImplementedError("Implement respond() on a concrete agent, not on this Protocol.")
+
+
+class EchoAgent:
+    """Tiny concrete adapter that proves the protocol shape."""
+
+    def respond(self, prompt: str) -> str:
+        return f"Echo: {prompt}"
 
 
 class ToyAgent:

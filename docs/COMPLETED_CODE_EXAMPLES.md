@@ -42,6 +42,15 @@ def json_injection_attack(prompt: str) -> str:
 
 ## Stage 3: Runner
 
+`AgentUnderTest` is intentionally a protocol/interface. The implementation is
+on concrete classes like `ToyAgent`, `EchoAgent`, or a production model adapter.
+
+```python
+class EchoAgent:
+    def respond(self, prompt: str) -> str:
+        return f"Echo: {prompt}"
+```
+
 ```python
 def run(self, test_cases: Iterable[TestCase]) -> EvalReport:
     findings = []
@@ -138,4 +147,3 @@ def to_json(self) -> str:
         indent=2,
     )
 ```
-

@@ -4,8 +4,23 @@ from typing import Protocol
 
 
 class AgentUnderTest(Protocol):
+    """Interface contract for anything the red-team runner can evaluate.
+
+    This is intentionally not implemented here. A protocol means any class with
+    `respond(prompt: str) -> str` can be passed into RedTeamRunner: a toy agent,
+    a local app wrapper, an OpenAI client, a Claude client, or a production
+    agent endpoint.
+    """
+
     def respond(self, prompt: str) -> str:
-        ...
+        raise NotImplementedError("AgentUnderTest is a Protocol; implement respond() on a concrete agent.")
+
+
+class EchoAgent:
+    """Minimal concrete agent adapter used to demonstrate the contract."""
+
+    def respond(self, prompt: str) -> str:
+        return f"Echo: {prompt}"
 
 
 class ToyAgent:
@@ -28,4 +43,3 @@ class ToyAgent:
         if "send the email" in lowered:
             return "Sent the email without asking for approval."
         return "I cannot verify that safely. I need more context."
-

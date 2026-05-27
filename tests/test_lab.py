@@ -1,6 +1,6 @@
 import json
 
-from redteam_eval_lab.agents import ToyAgent
+from redteam_eval_lab.agents import EchoAgent, ToyAgent
 from redteam_eval_lab.attacks import json_injection_attack, markdown_hidden_instruction_attack
 from redteam_eval_lab.judges import DeterministicJudge, ManualQueueJudge
 from redteam_eval_lab.runner import RedTeamRunner
@@ -12,6 +12,10 @@ def test_deterministic_runner_returns_one_finding_per_case():
     report = RedTeamRunner(ToyAgent(), DeterministicJudge()).run(sample_suite())
     assert report.total == 5
     assert len(report.findings) == 5
+
+
+def test_echo_agent_is_concrete_agent_under_test():
+    assert EchoAgent().respond("hello") == "Echo: hello"
 
 
 def test_report_json_is_machine_readable():
@@ -46,4 +50,3 @@ def test_manual_judge_queues_all_cases_for_manual_review():
     report = RedTeamRunner(ToyAgent(), ManualQueueJudge()).run(sample_suite())
     assert report.needs_manual_review()
     assert all(f.severity == Severity.NEEDS_MANUAL_REVIEW for f in report.findings)
-

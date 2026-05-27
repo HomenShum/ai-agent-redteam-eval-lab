@@ -105,8 +105,17 @@ class EvalReport:
 
 
 class AgentUnderTest(Protocol):
+    """Interface contract for anything RedTeamRunner can evaluate."""
+
     def respond(self, prompt: str) -> str:
-        ...
+        raise NotImplementedError("AgentUnderTest is a Protocol; implement respond() on a concrete agent.")
+
+
+class EchoAgent:
+    """Tiny concrete adapter that proves the protocol shape."""
+
+    def respond(self, prompt: str) -> str:
+        return f"Echo: {prompt}"
 
 
 class ToyAgent:
