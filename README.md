@@ -52,6 +52,20 @@ python -m redteam_eval_lab.cli --judge manual
 
 The tests should pass. The CLI intentionally reports failures because the toy agent is vulnerable.
 
+Optional real LLM judges:
+
+```powershell
+pip install -e .[openai]
+$env:OPENAI_API_KEY="..."
+python -m redteam_eval_lab.cli --judge openai
+python -m redteam_eval_lab.cli --judge openai-chat
+python -m redteam_eval_lab.cli --judge openai-agents
+
+pip install -e .[anthropic]
+$env:ANTHROPIC_API_KEY="..."
+python -m redteam_eval_lab.cli --judge anthropic
+```
+
 ## Start Here
 
 If you want the CodeCrafters-style path, read the stages in order:
@@ -91,6 +105,7 @@ Important files:
 - [attacks.py](src/redteam_eval_lab/attacks.py) - prompt injection, base64, JSON injection, hidden markdown
 - [agents.py](src/redteam_eval_lab/agents.py) - intentionally vulnerable toy agent
 - [judges.py](src/redteam_eval_lab/judges.py) - deterministic, manual, OpenAI, Anthropic judges
+- [llm_clients.py](src/redteam_eval_lab/llm_clients.py) - real OpenAI, Anthropic, and OpenAI Agents JSON clients
 - [runner.py](src/redteam_eval_lab/runner.py) - orchestration loop
 - [suites.py](src/redteam_eval_lab/suites.py) - sample risk/attack test cases
 

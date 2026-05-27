@@ -1,10 +1,17 @@
 from __future__ import annotations
 
 import json
-import os
 import re
 from abc import ABC, abstractmethod
 
+from .llm_clients import (
+    AnthropicMessagesJsonClient,
+    FakeJsonClient,
+    LlmJsonClient,
+    OpenAIAgentsJsonClient,
+    OpenAIChatJsonClient,
+    OpenAIResponsesJsonClient,
+)
 from .schemas import Finding, Severity, TestCase
 
 
@@ -125,54 +132,51 @@ class ManualQueueJudge(Judge):
         )
 
 
-class OpenAIJudge(Judge):
-    """Optional semantic judge using the OpenAI Python SDK.
+class LlmJudge(Judge):
+    """Provider-neutral semantic judge.
 
-    Set OPENAI_API_KEY before use. The import is lazy so the repo runs without
-    paid SDKs installed.
+    The model client does only one thing: return JSON. This keeps OpenAI,
+    Anthropic, Agents SDK, and local-router implementations behind the same
+    Finding contract.
     """
 
-    name = "openai_llm"
+    name = "llm"
+
+    def __init__(self, client: LlmJsonClient | None = None, name: str | None = None) -> None:
+        self.client = client or FakeJsonClient()
+        self.name = name or getattr(self.client, "name", "llm")
+
+    def evaluate(self, test_case: TestCase, response: str) -> Finding:
+        raw_json = self.client.complete_json(llm_judge_prompt(test_case, response))
+        return finding_from_llm_json(test_case, response, raw_json, self.name)
+
+
+class OpenAIJudge(LlmJudge):
+    """Real OpenAI Responses API judge."""
 
     def __init__(self, model: str = "gpt-5.1-mini") -> None:
-        self.model = model
-
-    def evaluate(self, test_case: TestCase, response: str) -> Finding:
-        from openai import OpenAI
-
-        client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-        prompt = llm_judge_prompt(test_case, response)
-        result = client.responses.create(
-            model=self.model,
-            input=prompt,
-            text={"format": {"type": "json_object"}},
-        )
-        return finding_from_llm_json(test_case, response, result.output_text, self.name)
+        super().__init__(OpenAIResponsesJsonClient(model=model), name="openai_responses")
 
 
-class AnthropicJudge(Judge):
-    """Optional semantic judge using the Anthropic Python SDK.
+class OpenAIChatJudge(LlmJudge):
+    """Real OpenAI Chat Completions judge."""
 
-    Claude Agent SDK is useful when the judge itself needs agentic file/tool
-    work. For a single response grade, direct Anthropic messages are enough.
-    """
+    def __init__(self, model: str = "gpt-5.1-mini") -> None:
+        super().__init__(OpenAIChatJsonClient(model=model), name="openai_chat")
 
-    name = "anthropic_llm"
+
+class OpenAIAgentsJudge(LlmJudge):
+    """Real OpenAI Agents SDK judge."""
+
+    def __init__(self, model: str = "gpt-5.1-mini") -> None:
+        super().__init__(OpenAIAgentsJsonClient(model=model), name="openai_agents")
+
+
+class AnthropicJudge(LlmJudge):
+    """Real Anthropic Messages API judge."""
 
     def __init__(self, model: str = "claude-sonnet-4-5") -> None:
-        self.model = model
-
-    def evaluate(self, test_case: TestCase, response: str) -> Finding:
-        import anthropic
-
-        client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
-        message = client.messages.create(
-            model=self.model,
-            max_tokens=800,
-            messages=[{"role": "user", "content": llm_judge_prompt(test_case, response)}],
-        )
-        text = "".join(block.text for block in message.content if getattr(block, "type", "") == "text")
-        return finding_from_llm_json(test_case, response, text, self.name)
+        super().__init__(AnthropicMessagesJsonClient(model=model), name="anthropic_messages")
 
 
 def llm_judge_prompt(test_case: TestCase, response: str) -> str:
@@ -216,4 +220,3 @@ def finding_from_llm_json(test_case: TestCase, response: str, raw_json: str, jud
             "Retry with structured output or send to manual review.",
             judge_name,
         )
-

@@ -98,6 +98,12 @@ class ManualQueueJudge:
 
 ## Stage 6: LLM Judge
 
+The reference implementation has real provider clients in:
+
+```text
+src/redteam_eval_lab/llm_clients.py
+```
+
 ```python
 class LlmJudge:
     name = "llm"
@@ -113,6 +119,15 @@ class LlmJudge:
             data.get("remediation", ""),
             self.name,
         )
+```
+
+Example real clients:
+
+```python
+judge = LlmJudge(OpenAIResponsesJsonClient(model="gpt-5.1-mini"))
+judge = LlmJudge(OpenAIChatJsonClient(model="gpt-5.1-mini"))
+judge = LlmJudge(OpenAIAgentsJsonClient(model="gpt-5.1-mini"))
+judge = LlmJudge(AnthropicMessagesJsonClient(model="claude-sonnet-4-5"))
 ```
 
 ## Stage 7: SDK Adapter Boundary
