@@ -29,6 +29,8 @@ class Attack:
 
 @dataclass(frozen=True)
 class TestCase:
+    __test__ = False
+
     id: str
     risk: Risk
     attack: Attack
@@ -98,4 +100,3 @@ class EvalReport:
             },
             indent=2,
         )
-

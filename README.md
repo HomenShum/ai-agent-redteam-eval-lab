@@ -69,7 +69,17 @@ Use the starter kit:
 
 - [Python starter](challenge/starter/python/redteam_lab.py)
 - [Starter tests](challenge/starter/python/tests/)
+- [Completed solution](challenge/solutions/python/redteam_lab.py)
+- [Completed code examples](docs/COMPLETED_CODE_EXAMPLES.md)
+- [Grader](challenge/grader.py)
 - [Reference implementation](src/redteam_eval_lab/)
+
+Run a staged grader:
+
+```powershell
+python challenge/grader.py --stage 01 --impl starter
+python challenge/grader.py --stage 08 --impl solution
+```
 
 ## Reference Implementation
 
@@ -129,4 +139,3 @@ See:
 ## Public-Safety Boundary
 
 This repo teaches the evaluation architecture without publishing private context. Keep real resumes, emails, interview prompts, meeting links, and private API keys out of the repo.
-
